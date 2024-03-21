@@ -10,11 +10,12 @@ class realmd::join::password {
   $_password           = $::realmd::domain_join_password
   $_ou                 = $::realmd::ou
   $_extra_join_options = $::realmd::extra_join_options
-
+  
+  $_hostname = $facts['networking']['hostname']
   if $::realmd::computer_name != undef {
     $_computer_name = $::realmd::computer_name
   } else {
-    $_computer_name = $::hostname[0,15]
+    $_computer_name = $_hostname[0,15]
   }
 
   if $::operatingsystem == 'Ubuntu'  {

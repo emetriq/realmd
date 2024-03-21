@@ -14,15 +14,18 @@ class realmd::join::one_time_password {
   $_krb_config        = $::realmd::krb_config
   $_manage_krb_config = $::realmd::manage_krb_config
 
-  $_krb_config_final = deep_merge({'libdefaults' => {'default_realm' => upcase($::domain)}}, $_krb_config)
+  $_dns_domain = $facts['networking']['domain']
+  $_hostname = $facts['networking']['hostname']
+  $_realm=upcase($::realmd::domain)
+  $_fqdn=$facts['networking']['fqdn']
+  
+  $_krb_config_final = deep_merge({'libdefaults' => {'default_realm' => upcase($_dns_domain)}}, $_krb_config)
   if !$::realmd::one_time_password  {
-        $_password=$::hostname[0,15]
+        $_password=$_hostname[0,15]
     }
     else {
         $_password=$::realmd::one_time_password
   }
-  $_realm=upcase($::realmd::domain)
-  $_fqdn=$::fqdn
 
   if $_manage_krb_config {
     file { 'krb_configuration':
@@ -40,7 +43,7 @@ class realmd::join::one_time_password {
     $_domain_args = ["--domain=${_domain}", "--user-principal=host/${_fqdn}@${_realm}",
                     '--login-type=computer', "--computer-name=${_netbiosname}"]
   } else {
-    $_check_pricipal = $::hostname[0,15]
+    $_check_pricipal = $_hostname[0,15]
     $_domain_args = ["--domain=${_domain}", "--user-principal=host/${_fqdn}@${_realm}", '--login-type=computer']
   }
 

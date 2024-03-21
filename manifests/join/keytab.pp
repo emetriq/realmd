@@ -13,7 +13,10 @@ class realmd::join::keytab {
   $_manage_krb_config = $::realmd::manage_krb_config
   $_ou                = $::realmd::ou
 
-  $_krb_config_final = deep_merge({'libdefaults' => {'default_realm' => upcase($::domain)}}, $_krb_config)
+  $_dns_domain = $facts['networking']['domain']
+  $_hostname = $facts['networking']['hostname']
+
+  $_krb_config_final = deep_merge({'libdefaults' => {'default_realm' => upcase($_dns_domain)}}, $_krb_config)
 
   file { 'krb_keytab':
     path   => $_krb_keytab,
@@ -38,7 +41,7 @@ class realmd::join::keytab {
   exec { 'run_kinit_with_keytab':
     path    => '/usr/bin:/usr/sbin:/bin',
     command => "kinit -kt ${_krb_keytab} ${_domain_join_user}",
-    unless  => "klist -k /etc/krb5.keytab | grep -i '${::hostname[0,15]}@${_domain}'",
+    unless  => "klist -k /etc/krb5.keytab | grep -i '${_hostname[0,15]}@${_domain}'",
     before  => Exec['realm_join_with_keytab'],
   }
 
@@ -53,7 +56,7 @@ class realmd::join::keytab {
   exec { 'realm_join_with_keytab':
     path    => '/usr/bin:/usr/sbin:/bin',
     command => "realm join ${_args}",
-    unless  => "klist -k /etc/krb5.keytab | grep -i '${::hostname[0,15]}@${_domain}'",
+    unless  => "klist -k /etc/krb5.keytab | grep -i '${_hostname[0,15]}@${_domain}'",
     require => Exec['run_kinit_with_keytab'],
   }
 
